@@ -13,6 +13,16 @@ function completionObject(habit) {
   return habit.completions || {};
 }
 
+function habitFrequency(habit) {
+  const frequency = Number(habit.frequency) || 7;
+  return Math.min(7, Math.max(1, frequency));
+}
+
+function targetForDateCount(count, habit) {
+  if (!count) return 0;
+  return Math.min(count, Math.ceil((count * habitFrequency(habit)) / 7));
+}
+
 function getStreaks(completions, endKey) {
   const completedKeys = Object.keys(completions)
     .filter((key) => completions[key] && key <= endKey)
@@ -58,9 +68,10 @@ export function calculateHabitAnalytics(habit, through = toDateKey()) {
   const trackedDates = enumerateDateKeys(habit.createdAt, effectiveEnd);
   const totalCompletions = trackedDates.filter((key) => completions[key]).length;
   const totalDaysTracked = trackedDates.length;
-  const missedDays = Math.max(0, totalDaysTracked - totalCompletions);
-  const completionRate = totalDaysTracked
-    ? Math.round((totalCompletions / totalDaysTracked) * 100)
+  const expectedCompletions = targetForDateCount(totalDaysTracked, habit);
+  const missedDays = Math.max(0, expectedCompletions - totalCompletions);
+  const completionRate = expectedCompletions
+    ? Math.min(100, Math.round((totalCompletions / expectedCompletions) * 100))
     : 0;
   const last30Start = addDays(effectiveEnd, -29);
   const last30Dates = enumerateDateKeys(
@@ -68,8 +79,9 @@ export function calculateHabitAnalytics(habit, through = toDateKey()) {
     effectiveEnd,
   );
   const last30Completions = last30Dates.filter((key) => completions[key]).length;
-  const last30CompletionRate = last30Dates.length
-    ? Math.round((last30Completions / last30Dates.length) * 100)
+  const last30ExpectedCompletions = targetForDateCount(last30Dates.length, habit);
+  const last30CompletionRate = last30ExpectedCompletions
+    ? Math.min(100, Math.round((last30Completions / last30ExpectedCompletions) * 100))
     : 0;
   const weekdayMisses = Array(7).fill(0);
 

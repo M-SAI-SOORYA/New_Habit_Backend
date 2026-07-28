@@ -46,6 +46,27 @@ test("keeps a current streak alive when the latest completion was yesterday", ()
   assert.equal(analytics.longestStreak, 2);
 });
 
+test("uses weekly frequency for normal completion rate and missed days", () => {
+  const analytics = calculateHabitAnalytics(
+    {
+      createdAt: "2026-07-01",
+      frequency: 3,
+      completions: {
+        "2026-07-01": true,
+        "2026-07-03": true,
+        "2026-07-06": true,
+      },
+    },
+    "2026-07-07",
+  );
+
+  assert.equal(analytics.totalCompletions, 3);
+  assert.equal(analytics.totalDaysTracked, 7);
+  assert.equal(analytics.missedDays, 0);
+  assert.equal(analytics.completionRate, 100);
+  assert.equal(analytics.last30CompletionRate, 100);
+});
+
 test("handles a habit with no completions", () => {
   const analytics = calculateHabitAnalytics(
     { createdAt: "2026-07-25", completions: {} },
