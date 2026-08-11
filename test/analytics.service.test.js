@@ -67,6 +67,32 @@ test("uses weekly frequency for normal completion rate and missed days", () => {
   assert.equal(analytics.last30CompletionRate, 100);
 });
 
+test("uses recent target rate for consistency score", () => {
+  const analytics = calculateHabitAnalytics(
+    {
+      createdAt: "2026-06-01",
+      frequency: 7,
+      completions: {
+        "2026-07-01": true,
+        "2026-07-02": true,
+        "2026-07-03": true,
+        "2026-07-04": true,
+        "2026-07-05": true,
+        "2026-07-06": true,
+        "2026-07-07": true,
+        "2026-07-08": true,
+        "2026-07-09": true,
+        "2026-07-10": true,
+      },
+    },
+    "2026-07-10",
+  );
+
+  assert.equal(analytics.completionRate, 25);
+  assert.equal(analytics.last30CompletionRate, 33);
+  assert.equal(analytics.consistencyScore, 33);
+});
+
 test("handles a habit with no completions", () => {
   const analytics = calculateHabitAnalytics(
     { createdAt: "2026-07-25", completions: {} },

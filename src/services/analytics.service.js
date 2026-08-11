@@ -20,7 +20,11 @@ function habitFrequency(habit) {
 
 function targetForDateCount(count, habit) {
   if (!count) return 0;
-  return Math.min(count, Math.ceil((count * habitFrequency(habit)) / 7));
+  return Math.min(count, (count * habitFrequency(habit)) / 7);
+}
+
+function missedForTarget(target, completions) {
+  return Math.max(0, Math.ceil(target - completions));
 }
 
 function getStreaks(completions, endKey) {
@@ -69,7 +73,7 @@ export function calculateHabitAnalytics(habit, through = toDateKey()) {
   const totalCompletions = trackedDates.filter((key) => completions[key]).length;
   const totalDaysTracked = trackedDates.length;
   const expectedCompletions = targetForDateCount(totalDaysTracked, habit);
-  const missedDays = Math.max(0, expectedCompletions - totalCompletions);
+  const missedDays = missedForTarget(expectedCompletions, totalCompletions);
   const completionRate = expectedCompletions
     ? Math.min(100, Math.round((totalCompletions / expectedCompletions) * 100))
     : 0;
@@ -101,7 +105,7 @@ export function calculateHabitAnalytics(habit, through = toDateKey()) {
     totalCompletions,
     missedDays,
     totalDaysTracked,
-    consistencyScore: completionRate,
+    consistencyScore: last30CompletionRate,
     last30CompletionRate,
     bestStreakPeriod: streak.bestPeriod,
     mostMissedWeekday: trackedDates.length ? WEEKDAYS[mostMissedIndex] : null,
