@@ -28,6 +28,26 @@ const habitSchema = new mongoose.Schema(
       max: 7,
       validate: Number.isInteger,
     },
+    description: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: "",
+    },
+    checklist: {
+      type: [
+        {
+          type: String,
+          trim: true,
+          maxlength: 160,
+        },
+      ],
+      default: [],
+      validate: {
+        validator: (items) => items.length <= 12,
+        message: "checklist cannot contain more than 12 items",
+      },
+    },
     createdAt: {
       type: String,
       required: true,

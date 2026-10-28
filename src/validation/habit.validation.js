@@ -7,6 +7,8 @@ const ALLOWED_FIELDS = new Set([
   "category",
   "color",
   "frequency",
+  "description",
+  "checklist",
   "createdAt",
   "completions",
 ]);
@@ -49,6 +51,26 @@ function validateFields(payload, partial) {
     throw new ApiError(400, "frequency must be an integer between 1 and 7");
   }
 
+  if (payload.description !== undefined) {
+    if (typeof payload.description !== "string" || payload.description.trim().length > 500) {
+      throw new ApiError(400, "description must contain at most 500 characters");
+    }
+    payload.description = payload.description.trim();
+  }
+
+  if (payload.checklist !== undefined) {
+    if (!Array.isArray(payload.checklist) || payload.checklist.length > 12) {
+      throw new ApiError(400, "checklist must contain at most 12 items");
+    }
+
+    payload.checklist = payload.checklist.map((item) => {
+      if (typeof item !== "string" || !item.trim() || item.trim().length > 160) {
+        throw new ApiError(400, "Each checklist item must contain between 1 and 160 characters");
+      }
+      return item.trim();
+    });
+  }
+
   if (payload.createdAt !== undefined && !isDateKey(payload.createdAt)) {
     throw new ApiError(400, "createdAt must be a valid date in YYYY-MM-DD format");
   }
@@ -76,6 +98,8 @@ export function validateCreateHabit(payload) {
   const habit = validateFields({ ...payload }, false);
   habit.createdAt ??= toDateKey();
   habit.completions ??= {};
+  habit.description ??= "";
+  habit.checklist ??= [];
   return habit;
 }
 
